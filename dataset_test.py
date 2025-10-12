@@ -23,7 +23,7 @@ class DatasetFromFolder(data.Dataset):
         print(self.target_path)
         print(self.label_path)
         self.image_filenames = [x for x in sorted(os.listdir(self.input_path))]
-        print(self.image_filenames)
+        # print(self.image_filenames)
         self.direction = direction
         self.transform = transform
         self.resize_scale = resize_scale    # resize_scale = 286
@@ -45,7 +45,8 @@ class DatasetFromFolder(data.Dataset):
         img_fn_name = img_fn.split('/')[-1]
 
         img_input = cv.imread(img_fn)
-        img_target = cv.imread(img_tar)
+        # Replace target with input
+        img_target = cv.imread(img_fn)
         img_label = cv.imread(img_label)
 
         # preprocessing
@@ -53,7 +54,8 @@ class DatasetFromFolder(data.Dataset):
             
             img_input = cv.resize(img_input, (self.resize_scale, self.resize_scale))
             img_target = cv.resize(img_target, (self.resize_scale, self.resize_scale))
-            print("img_target.size is {}".format(img_target.shape))
+            img_label = cv.resize(img_label, (self.resize_scale, self.resize_scale))
+            # print("img_target.size is {}".format(img_target.shape))
 
         if self.crop_size:
             
@@ -62,13 +64,15 @@ class DatasetFromFolder(data.Dataset):
            
             img_input = img_input[x : x + self.crop_size, y:y+self.crop_size, :]
             img_target = img_target[x : x + self.crop_size, y:y+self.crop_size, :]
-            print("img_target.size is {}".format(img_target.shape))
+            img_label = img_label[x : x + self.crop_size, y:y+self.crop_size, :]
+            # print("img_target.size is {}".format(img_target.shape))
 
         if self.fliplr:
             if random.random() < 0.5:
                 
                 img_input = cv.flip(img_input, 1)
                 img_target = cv.flip(img_target, 1)
+                img_label = cv.flip(img_label, 1)
 
         img_input = transforms.ToPILImage()(img_input)
         img_target = transforms.ToPILImage()(img_target)
