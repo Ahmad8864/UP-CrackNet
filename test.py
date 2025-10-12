@@ -40,7 +40,7 @@ test_transform = transforms.Compose([transforms.Scale(params.input_size),
                                      transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
 # Test data
-test_data = DatasetFromFolder(data_dir, subfolder='test_folder_all', direction=params.direction, transform=test_transform)
+test_data = DatasetFromFolder(data_dir, subfolder='test_folder_all', transform=test_transform)
 test_data_loader = torch.utils.data.DataLoader(dataset=test_data,
                                                batch_size=params.batch_size,
                                                shuffle=False)

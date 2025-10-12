@@ -8,23 +8,16 @@ from torchvision import datasets, transforms
 from stride_augmentation import *
 
 class DatasetFromFolder(data.Dataset):
-    def __init__(self, image_dir, subfolder='train', direction='AtoB', transform=None, resize_scale=None, crop_size=None, fliplr=False):
+    def __init__(self, image_dir, subfolder='train', transform=None, resize_scale=None, crop_size=None, fliplr=False):
         super(DatasetFromFolder, self).__init__()
-        if direction == 'AtoB':
-            self.input_path = os.path.join(image_dir, subfolder, 'a')
-            self.target_path = os.path.join(image_dir, subfolder, 'b')
-            self.label_path = os.path.join(image_dir, subfolder, 'label')
-        else:
-            self.input_path = os.path.join(image_dir, subfolder, 'b')
-            self.target_path = os.path.join(image_dir, subfolder, 'a')
-            self.label_path = os.path.join(image_dir, subfolder, 'label')
+        # load images and labels from single subfolder.
+        self.image_path = os.path.join(image_dir, subfolder)
+        self.label_path = os.path.join(image_dir, subfolder, 'label')
 
-        print(self.input_path)
-        print(self.target_path)
+        print(self.image_path)
         print(self.label_path)
-        self.image_filenames = [x for x in sorted(os.listdir(self.input_path))]
+        self.image_filenames = [x for x in sorted(os.listdir(self.image_path))]
         # print(self.image_filenames)
-        self.direction = direction
         self.transform = transform
         self.resize_scale = resize_scale    # resize_scale = 286
         self.crop_size = crop_size  # crop_size = 256
@@ -32,8 +25,8 @@ class DatasetFromFolder(data.Dataset):
 
     def __getitem__(self, index):
         # Load Image
-        img_fn = os.path.join(self.input_path, self.image_filenames[index])
-        img_tar = os.path.join(self.target_path, self.image_filenames[index])
+        img_fn = os.path.join(self.image_path, self.image_filenames[index])
+        img_tar = img_fn
 
         old = False
         if old:
@@ -41,12 +34,12 @@ class DatasetFromFolder(data.Dataset):
             img_label = os.path.join(self.label_path, file_name + '_mask.png')
         else:
             img_label = os.path.join(self.label_path, self.image_filenames[index])
-        
+
         img_fn_name = img_fn.split('/')[-1]
 
         img_input = cv.imread(img_fn)
-        # Replace target with input
-        img_target = cv.imread(img_fn)
+        # make a copy for the untouched target
+        img_target = img_input.copy()
         img_label = cv.imread(img_label)
 
         # preprocessing

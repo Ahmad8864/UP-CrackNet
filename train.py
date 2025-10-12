@@ -119,7 +119,7 @@ transform = transforms.Compose([transforms.Resize(params.input_size),
                                 transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
 
-train_data = DatasetFromFolder(data_dir, subfolder='train', direction=params.direction, 
+train_data = DatasetFromFolder(data_dir, subfolder='train', 
                 resize_scale=params.resize_scale,  transform=transform, crop_size=params.crop_size, fliplr=params.fliplr)
 
 
@@ -127,7 +127,7 @@ train_data_loader = torch.utils.data.DataLoader(dataset=train_data,
                                                 batch_size=params.batch_size,
                                                 shuffle=True, pin_memory=True, num_workers=72, prefetch_factor=20, persistent_workers=True)
 
-test_data = DatasetFromFolder(data_dir, subfolder='validation', direction=params.direction, transform=transform)
+test_data = DatasetFromFolder(data_dir, subfolder='validation', transform=transform)
 
 test_data_loader = torch.utils.data.DataLoader(dataset=test_data,
                                                batch_size=params.batch_size,

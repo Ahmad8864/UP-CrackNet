@@ -10,35 +10,30 @@ from stride_augmentation import *
 from checkboard_augmentation import *
 
 class DatasetFromFolder(data.Dataset):
-    def __init__(self, image_dir, subfolder='train', direction='AtoB', transform=None, resize_scale=None, crop_size=None, fliplr=False):
+    def __init__(self, image_dir, subfolder='train', transform=None, resize_scale=None, crop_size=None, fliplr=False):
         super(DatasetFromFolder, self).__init__()
-        if direction == 'AtoB':
-            self.input_path = os.path.join(image_dir, subfolder, 'a')
-            self.target_path = os.path.join(image_dir, subfolder, 'b')
-        else:
-            self.input_path = os.path.join(image_dir, subfolder, 'b')
-            self.target_path = os.path.join(image_dir, subfolder, 'a')
-
-        print(self.input_path)
-        print(self.target_path)
-        self.image_filenames = [x for x in sorted(os.listdir(self.input_path))]
+        # Simplified: load images from a single folder (subfolder).
+        # The same image file will be used as the target (clean) and
+        # a corrupted version will be produced as the model input.
+        self.image_path = os.path.join(image_dir, subfolder)
+        print(self.image_path)
+        self.image_filenames = [x for x in sorted(os.listdir(self.image_path))]
         # print(self.image_filenames)
-        self.direction = direction
         self.transform = transform
         self.resize_scale = resize_scale    # resize_scale = 286
         self.crop_size = crop_size  # crop_size = 256
         self.fliplr = fliplr    # fliplr = True
 
     def __getitem__(self, index):
-        # Load Image
-        img_fn = os.path.join(self.input_path, self.image_filenames[index])
-        img_tar = os.path.join(self.target_path, self.image_filenames[index])
+        # Load a single image file and use it for both input (to be corrupted)
+        # and the untouched target.
+        img_fn = os.path.join(self.image_path, self.image_filenames[index])
+        img_tar = img_fn
         # print("img_fn is {}".format(img_fn))
         # print("img_tar is {}".format(img_tar))
         img_input = cv.imread(img_fn)
-        
-        # Replaced with uncorrupted image
-        img_target = cv.imread(img_fn)
+        # Make a separate copy for the target (unchanged)
+        img_target = img_input.copy()
         
         stride = False
         
@@ -78,7 +73,6 @@ class DatasetFromFolder(data.Dataset):
 
         if self.fliplr:
             if random.random() < 0.5:
-                
                 img_input = cv.flip(img_input, 1)
                 img_target = cv.flip(img_target, 1)
 
