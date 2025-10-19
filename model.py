@@ -1,10 +1,12 @@
 import torch
 from torchsummary import summary
 
+
 class ConvBlock(torch.nn.Module):
-    def __init__(self, input_size, output_size, kernel_size=4, stride=2, padding=1, activation=True, batch_norm=True):
+    def __init__(self, input_size, output_size, kernel_size=4, stride=2, padding=1, activation=True, batch_norm=True, spectral_norm=False):
         super(ConvBlock, self).__init__()
         self.conv = torch.nn.Conv2d(input_size, output_size, kernel_size, stride, padding)
+        self.conv = torch.nn.utils.spectral_norm(self.conv) if spectral_norm else self.conv
         self.activation = activation
         self.lrelu = torch.nn.LeakyReLU(0.2, True)
         self.batch_norm = batch_norm
@@ -170,11 +172,11 @@ class Discriminator(torch.nn.Module):
     def __init__(self, input_dim, num_filter, output_dim):
         super(Discriminator, self).__init__()
         # input_dim = 6, num_filter = 64, out_dim = 1
-        self.conv1 = ConvBlock(input_dim, num_filter, activation=False, batch_norm=False)   # (bn, 64, 128, 128)
-        self.conv2 = ConvBlock(num_filter, num_filter * 2)  # (bn, 128, 64, 64)
-        self.conv3 = ConvBlock(num_filter * 2, num_filter * 4)  # (bn, 256, 32, 32)
-        self.conv4 = ConvBlock(num_filter * 4, num_filter * 8, stride=1)    # (bn, 512, 31, 31)
-        self.conv5 = ConvBlock(num_filter * 8, output_dim, stride=1, batch_norm=False)  # (bn, 1, 30, 30)
+        self.conv1 = ConvBlock(input_dim, num_filter, activation=False, batch_norm=False, spectral_norm=False)   # (bn, 64, 128, 128)
+        self.conv2 = ConvBlock(num_filter, num_filter * 2, spectral_norm=False)  # (bn, 128, 64, 64)
+        self.conv3 = ConvBlock(num_filter * 2, num_filter * 4, spectral_norm=False)  # (bn, 256, 32, 32)
+        self.conv4 = ConvBlock(num_filter * 4, num_filter * 8, stride=1, spectral_norm=False)    # (bn, 512, 31, 31)
+        self.conv5 = ConvBlock(num_filter * 8, output_dim, stride=1, batch_norm=False, spectral_norm=False)  # (bn, 1, 30, 30)
 
     def forward(self, x, label):
         x = torch.cat([x, label], 1)
